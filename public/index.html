@@ -3,8 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNS動画チェッカー</title>
+    <title>JAPAN SELECT クリエイティブチェッカー</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    jp: { 50:'#fef2f2', 100:'#fee2e2', 200:'#fecaca', 300:'#fca5a5', 400:'#f87171', 500:'#BC002D', 600:'#a00025', 700:'#85001f', 800:'#6b0019', 900:'#4a0011' }
+                }
+            }
+        }
+    }
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
         body { font-family: 'Noto Sans JP', sans-serif; }
@@ -12,49 +23,45 @@
         .status-warn { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
         .status-fail { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
         .status-unknown { background: #f3f4f6; color: #4b5563; border-color: #d1d5db; }
-        .status-unchecked { background: #fff; color: #9ca3af; border-color: #e5e7eb; }
-        .check-pass { background: #d1fae5; border-color: #6ee7b7; }
-        .check-fail { background: #fee2e2; border-color: #fca5a5; }
-        .drop-zone.dragover { border-color: #6366f1; background: #eef2ff; }
+        .drop-zone.dragover { border-color: #BC002D; background: #fef2f2; }
         @keyframes pulse-dot { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
         .loading-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
         .loading-dot:nth-child(2) { animation-delay: 0.2s; }
         .loading-dot:nth-child(3) { animation-delay: 0.4s; }
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .preview-thumb { transition: transform 0.2s; }
-        .preview-thumb:hover { transform: scale(1.5); z-index: 10; }
+        .preview-thumb { transition: transform 0.2s; cursor: pointer; }
+        .preview-thumb:hover { transform: scale(1.8); z-index: 10; position: relative; }
+        .tip-box { border-left: 3px solid #BC002D; }
+        .caption-issue { background: #fee2e2; border-radius: 2px; padding: 0 2px; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
     <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+            <svg viewBox="0 0 100 100" class="w-10 h-10 flex-shrink-0">
+                <circle cx="50" cy="50" r="48" fill="#1a1a1a"/>
+                <path d="M20 72 Q30 55 38 48 Q44 42 50 30 Q56 42 62 48 Q70 55 80 72 Z" fill="white"/>
+                <path d="M32 68 Q40 58 44 52 Q47 47 50 38 Q53 47 56 52 Q60 58 68 68 Z" fill="#1a1a1a"/>
+            </svg>
             <div>
-                <h1 class="text-xl font-bold text-gray-900">SNS動画チェッカー</h1>
-                <p class="text-xs text-gray-500">動画品質を自動チェック + 手動チェックリスト</p>
+                <h1 class="text-lg font-bold text-gray-900">JAPAN SELECT</h1>
+                <p class="text-xs text-gray-500 -mt-0.5">クリエイティブチェッカー</p>
             </div>
         </div>
     </header>
 
     <main class="max-w-5xl mx-auto px-4 py-8">
-        <!-- Step 1: 設定 -->
+        <!-- Step 1 -->
         <div id="step-config" class="space-y-6">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">1. 投稿タイプを選択</h2>
                 <div class="grid grid-cols-2 gap-4">
-                    <button onclick="selectType('pr')" id="btn-pr"
-                        class="type-btn p-4 rounded-xl border-2 border-gray-200 hover:border-indigo-400 transition-all text-left">
+                    <button onclick="selectType('pr')" id="btn-pr" class="type-btn p-4 rounded-xl border-2 border-gray-200 hover:border-jp-500 transition-all text-left">
                         <div class="font-semibold text-gray-900">PR投稿</div>
                         <div class="text-sm text-gray-500 mt-1">タイアップ・PR案件の動画</div>
                     </button>
-                    <button onclick="selectType('normal')" id="btn-normal"
-                        class="type-btn p-4 rounded-xl border-2 border-gray-200 hover:border-indigo-400 transition-all text-left">
+                    <button onclick="selectType('normal')" id="btn-normal" class="type-btn p-4 rounded-xl border-2 border-gray-200 hover:border-jp-500 transition-all text-left">
                         <div class="font-semibold text-gray-900">通常投稿</div>
                         <div class="text-sm text-gray-500 mt-1">通常のオーガニック投稿</div>
                     </button>
@@ -63,18 +70,17 @@
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">2. 動画をアップロード</h2>
-                <div id="drop-zone" class="drop-zone border-2 border-dashed border-gray-300 rounded-xl p-12 text-center cursor-pointer hover:border-indigo-400 transition-all"
-                    onclick="document.getElementById('file-input').click()">
+                <div id="drop-zone" class="drop-zone border-2 border-dashed border-gray-300 rounded-xl p-12 text-center cursor-pointer hover:border-jp-400 transition-all" onclick="document.getElementById('file-input').click()">
                     <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
                     <p class="text-gray-600 font-medium">ここにドラッグ&ドロップ</p>
                     <p class="text-sm text-gray-400 mt-1">またはクリックしてファイルを選択</p>
-                    <p class="text-xs text-gray-400 mt-2">MP4, MOV, AVI (最大500MB)</p>
+                    <p class="text-xs text-gray-400 mt-2">MP4, MOV, WebM</p>
                 </div>
                 <input type="file" id="file-input" accept="video/*" class="hidden" onchange="handleFile(this.files[0])">
-                <div id="file-info" class="hidden mt-4 p-4 bg-indigo-50 rounded-xl flex items-center gap-3">
-                    <svg class="w-8 h-8 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div id="file-info" class="hidden mt-4 p-4 bg-red-50 rounded-xl flex items-center gap-3">
+                    <svg class="w-8 h-8 text-jp-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                     </svg>
                     <div class="flex-1 min-w-0">
@@ -82,339 +88,685 @@
                         <p id="file-size" class="text-sm text-gray-500"></p>
                     </div>
                     <button onclick="clearFile()" class="text-gray-400 hover:text-red-500 p-1">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
 
-            <button onclick="startAnalysis()" id="btn-analyze"
-                class="w-full py-4 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200"
-                disabled>
-                チェック開始
-            </button>
+            <!-- 投稿文章チェック -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-2">3. 投稿文章（キャプション）を入力（任意）</h2>
+                <p class="text-sm text-gray-500 mb-4">キャプション・ハッシュタグを貼り付けると、自動でチェックします。</p>
+                <textarea id="caption-input" rows="5" placeholder="例:&#10;今話題の〇〇に行ってきた！&#10;実際に食べてみたら想像以上だった...&#10;&#10;#東京グルメ #pr #食べ歩き"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-jp-500 focus:border-jp-500 text-sm resize-none"></textarea>
+            </div>
+
+            <button onclick="startAnalysis()" id="btn-analyze" class="w-full py-4 bg-jp-500 text-white font-semibold rounded-xl hover:bg-jp-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-200" disabled>チェック開始</button>
         </div>
 
-        <!-- Step 2: 分析中 -->
+        <!-- Loading -->
         <div id="step-loading" class="hidden">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
                 <div class="flex justify-center gap-2 mb-6">
-                    <div class="loading-dot w-3 h-3 bg-indigo-600 rounded-full"></div>
-                    <div class="loading-dot w-3 h-3 bg-indigo-600 rounded-full"></div>
-                    <div class="loading-dot w-3 h-3 bg-indigo-600 rounded-full"></div>
+                    <div class="loading-dot w-3 h-3 bg-jp-500 rounded-full"></div>
+                    <div class="loading-dot w-3 h-3 bg-jp-500 rounded-full"></div>
+                    <div class="loading-dot w-3 h-3 bg-jp-500 rounded-full"></div>
                 </div>
                 <h2 class="text-xl font-semibold text-gray-900 mb-2">動画を分析中...</h2>
                 <p class="text-gray-500" id="loading-status">フレームを抽出しています</p>
+                <div class="mt-6 max-w-md mx-auto bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="bg-jp-500 h-2 rounded-full transition-all" style="width:0%"></div>
+                </div>
             </div>
         </div>
 
-        <!-- Step 3: 結果 -->
+        <!-- Results -->
         <div id="step-result" class="hidden space-y-6 fade-in">
-            <!-- ヘッダー -->
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-bold text-gray-900">チェック結果</h2>
-                <button onclick="resetAll()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium px-4 py-2 bg-indigo-50 rounded-lg">
-                    新しい動画をチェック
-                </button>
+                <button onclick="resetAll()" class="text-sm text-jp-500 hover:text-jp-700 font-medium px-4 py-2 bg-red-50 rounded-lg">新しい動画をチェック</button>
             </div>
 
-            <!-- 進捗バー -->
+            <!-- Progress -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <div class="flex items-center justify-between mb-3">
                     <span class="font-semibold text-gray-900">チェック進捗</span>
-                    <span id="progress-text" class="text-sm font-medium text-gray-600">0 / 0 完了</span>
+                    <span id="progress-text" class="text-sm font-medium text-gray-600"></span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-3">
-                    <div id="check-progress" class="bg-indigo-600 h-3 rounded-full transition-all duration-300" style="width:0%"></div>
+                    <div id="check-progress" class="bg-jp-500 h-3 rounded-full transition-all duration-300" style="width:0%"></div>
                 </div>
                 <div class="flex gap-4 mt-3 text-sm">
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-400 inline-block"></span> <span id="count-pass">0</span> OK</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> <span id="count-warn">0</span> 注意</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span> <span id="count-fail">0</span> NG</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 inline-block"></span> <span id="count-unchecked">0</span> 未チェック</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-400 inline-block"></span><span id="count-pass">0</span> OK</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span><span id="count-warn">0</span> 注意</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span><span id="count-fail">0</span> NG</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 inline-block"></span><span id="count-unchecked">0</span> 未チェック</span>
                 </div>
             </div>
 
-            <!-- メタデータ + プレビュー -->
+            <!-- Metadata -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <h3 class="font-semibold text-gray-900 mb-3">動画情報</h3>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4" id="metadata-display"></div>
                 <div id="preview-frames" class="flex gap-2 overflow-x-auto pb-2"></div>
             </div>
 
-            <!-- チェックリスト -->
+            <!-- Auto check summary -->
+            <div id="auto-check-summary" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hidden">
+                <h3 class="font-semibold text-gray-900 mb-3">自動チェック結果</h3>
+                <div id="auto-results-list" class="space-y-2"></div>
+            </div>
+
+            <!-- Caption check -->
+            <div id="caption-result" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hidden">
+                <h3 class="font-semibold text-gray-900 mb-3">投稿文章チェック結果</h3>
+                <div id="caption-results-list" class="space-y-2"></div>
+                <div id="caption-preview" class="mt-4 p-4 bg-gray-50 rounded-xl text-sm whitespace-pre-wrap hidden"></div>
+            </div>
+
+            <!-- Improvement Tips -->
+            <div id="tips-section" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h3 class="font-semibold text-gray-900 mb-3">改善のヒント</h3>
+                <div id="tips-list" class="space-y-3"></div>
+            </div>
+
+            <!-- Checklist -->
             <div id="checklist-results" class="space-y-4"></div>
 
-            <!-- エクスポート -->
-            <button onclick="exportResults()" id="btn-export"
-                class="w-full py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all">
-                結果をクリップボードにコピー
-            </button>
+            <!-- Export -->
+            <button onclick="exportResults()" id="btn-export" class="w-full py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all">結果をクリップボードにコピー</button>
         </div>
     </main>
 
-    <script>
-    let selectedType = null;
-    let selectedFile = null;
-    let analysisData = null;
-    let checkStates = {};  // {itemId: "pass"|"fail"|null}
+    <video id="analyzer-video" style="display:none" muted></video>
+    <canvas id="analyzer-canvas" style="display:none"></canvas>
 
-    function selectType(type) {
-        selectedType = type;
-        document.querySelectorAll('.type-btn').forEach(btn => {
-            btn.classList.remove('border-indigo-600', 'bg-indigo-50');
-            btn.classList.add('border-gray-200');
-        });
-        document.getElementById(`btn-${type}`).classList.remove('border-gray-200');
-        document.getElementById(`btn-${type}`).classList.add('border-indigo-600', 'bg-indigo-50');
-        updateAnalyzeButton();
-    }
-
-    function handleFile(file) {
-        if (!file || !file.type.startsWith('video/')) { alert('動画ファイルを選択してください'); return; }
-        selectedFile = file;
-        document.getElementById('file-name').textContent = file.name;
-        document.getElementById('file-size').textContent = (file.size / (1024*1024)).toFixed(1) + ' MB';
-        document.getElementById('file-info').classList.remove('hidden');
-        document.getElementById('drop-zone').classList.add('hidden');
-        updateAnalyzeButton();
-    }
-
-    function clearFile() {
-        selectedFile = null;
-        document.getElementById('file-input').value = '';
-        document.getElementById('file-info').classList.add('hidden');
-        document.getElementById('drop-zone').classList.remove('hidden');
-        updateAnalyzeButton();
-    }
-
-    function updateAnalyzeButton() {
-        document.getElementById('btn-analyze').disabled = !(selectedType && selectedFile);
-    }
-
-    // D&D
-    const dz = document.getElementById('drop-zone');
-    ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('dragover'); }));
-    ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('dragover'); }));
-    dz.addEventListener('drop', e => { if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-
-    async function startAnalysis() {
-        const formData = new FormData();
-        formData.append('video', selectedFile);
-        formData.append('post_type', selectedType);
-
-        document.getElementById('step-config').classList.add('hidden');
-        document.getElementById('step-loading').classList.remove('hidden');
-
-        const msgs = ['フレームを抽出しています...', 'シーン変化を検出中...', '顔検出を実行中...', '色分析を実行中...'];
-        let mi = 0;
-        const msgInterval = setInterval(() => {
-            mi = (mi + 1) % msgs.length;
-            document.getElementById('loading-status').textContent = msgs[mi];
-        }, 2000);
-
-        try {
-            const res = await fetch('/api/analyze', { method: 'POST', body: formData });
-            const data = await res.json();
-            clearInterval(msgInterval);
-            if (!res.ok) throw new Error(data.error || 'エラー');
-            analysisData = data;
-            showResults(data);
-        } catch (err) {
-            clearInterval(msgInterval);
-            alert('エラー: ' + err.message);
-            document.getElementById('step-loading').classList.add('hidden');
-            document.getElementById('step-config').classList.remove('hidden');
+<script>
+// ──────────────────────────────────────────────
+// チェックリスト定義（改善ヒント付き）
+// ──────────────────────────────────────────────
+const CHECKLISTS = {
+    pr: {
+        label: "PR投稿",
+        categories: {
+            editing: {
+                label: "編集に関して",
+                items: [
+                    {id:"pr_edit_01", text:"1カットの秒数0.6秒〜1.2秒になっているか", auto:"cut_duration",
+                     tip:"テンポの良いカット割りは視聴維持率に直結します。0.8秒前後が最適。長いカットは退屈に、短すぎると内容が伝わりません。"},
+                    {id:"pr_edit_02", text:"同一カテゴリのカットが3連続以上続いていないか（離脱ポイントになるため）", auto:"similar_scenes",
+                     tip:"同じ角度・同じ被写体が続くと視聴者は飽きます。料理→人→空間のように交互に切り替えましょう。"},
+                    {id:"pr_edit_03", text:"料理が画面の8割を占めているか", auto:false,
+                     tip:"被写体を大きく見せることで没入感が高まります。余白が多い場合はズームインで調整を。"},
+                    {id:"pr_edit_04", text:"誤字脱字はしていないか", auto:false,
+                     tip:"テロップの誤字は信頼性を大きく損ないます。固有名詞・価格・住所は特に注意。"},
+                    {id:"pr_edit_05", text:"テロップが画面の中央〜上1/3以内に収まっているか", auto:false,
+                     tip:"Reelsは下部にUIが重なるため、テロップは上1/3が安全。中央より下に置くとキャプションに被ります。"},
+                    {id:"pr_edit_06", text:"テロップのフォントはマニュアル通りか", auto:false,
+                     tip:"統一されたフォントはブランド認知を高めます。毎回同じフォント・サイズ・色を使いましょう。"},
+                    {id:"pr_edit_07", text:"肖像権を侵害していないか？（一般人の顔はモザイクをかける）", auto:"face_detect",
+                     tip:"背景に映り込んだ一般人にもモザイクが必要です。特に窓の反射や鏡にも注意。"},
+                    {id:"pr_edit_08", text:"音声の読み間違いはないか", auto:false,
+                     tip:"店名・地名の読み方は公式サイトで確認。AI音声の場合は特に固有名詞の発音に注意。"},
+                    {id:"pr_edit_09", text:"ナレーション音声の倍率が1.2倍になっているか", auto:false,
+                     tip:"1.2倍速は聞き取りやすさとテンポのバランスが最適。1.0倍はダレやすく、1.5倍以上は聞き取りづらい。"},
+                    {id:"pr_edit_10", text:"彩度/明度を調整し白飛びを防ぎ、料理の色が不自然でないか", auto:"color_check",
+                     tip:"料理は暖色寄りに補正すると美味しそうに見えます。ただし彩度を上げすぎると不自然になるので注意。"},
+                    {id:"pr_edit_11", text:"商用利用可能な音源を使用しているか", auto:false,
+                     tip:"CapCut内蔵音源、Artlist、Epidemic Sound等の商用ライセンスを確認。Instagram提供の音源はReels内でのみ使用可。"},
+                ]
+            },
+            appeal: {
+                label: "訴求に関して",
+                items: [
+                    {id:"pr_appeal_01", text:"冒頭10秒までに伸びる要素が2つ以上入っているか（意外性・話題性・希少性・権威性）", auto:false,
+                     tip:"「え、これ知らなかった」と思わせる意外性、「今話題の」で話題性、「限定」「1日10食」で希少性、「食べログ3.8」で権威性。最低2つ組み合わせましょう。"},
+                    {id:"pr_appeal_02", text:"情報を羅列しただけではなく行動描写の表現が1つ以上含まれているか", auto:false,
+                     tip:"「メニューはAとBがある」→「Aを頼んだら想像以上だった」のように体験として語ると共感が生まれます。"},
+                    {id:"pr_appeal_03", text:"ターゲットを明確に訴求しているか", auto:false,
+                     tip:"「誰にでもおすすめ」は誰にも刺さりません。「デート」「一人飲み」「記念日」等、シーンを限定すると反応率が上がります。"},
+                ]
+            },
+            script: {
+                label: "台本に関して",
+                items: [
+                    {id:"pr_script_01", text:"notionを見て今月絶対入れたい項目を確認し組み込んでいるか", auto:false,
+                     tip:"月間の重点訴求ポイントを忘れずに。投稿前に必ずNotionの当月ページを確認。"},
+                    {id:"pr_script_02", text:"第3者視点の台本になっているか", auto:false,
+                     tip:"店舗側の「うちの自慢は〜」ではなく「実際に行ったら〜だった」という第三者の発見・体験として語ることで信頼性UP。"},
+                    {id:"pr_script_03", text:"景品表示法のガイドラインを違反していないか？", auto:false,
+                     tip:"「No.1」には調査データの出典が必須。「最大」「最安」も根拠なしはNG。「みんな知ってる」も不当表示の可能性。"},
+                ]
+            },
+            legal: {
+                label: "法的リスクチェック",
+                items: [
+                    {id:"pr_legal_01", text:"景品表示法に抵触する表現がないか（優良誤認・有利誤認）", auto:"caption_legal",
+                     tip:"「No.1」「最安値」「業界初」等は客観的根拠が必要。「※個人の感想です」だけでは免責されません。"},
+                    {id:"pr_legal_02", text:"肖像権・プライバシーを侵害していないか", auto:"face_detect",
+                     tip:"一般人の顔、車のナンバー、住所が読める表札などすべてモザイク対象。SNSで拡散されるリスクを考慮。"},
+                    {id:"pr_legal_03", text:"著作権を侵害していないか（音源・フォント・画像）", auto:false,
+                     tip:"BGM、フォント、素材画像すべてに商用ライセンスが必要。フリー素材でもクレジット表記が条件のものがあります。"},
+                    {id:"pr_legal_04", text:"PR表記は適切か（ステマ規制対応）", auto:"caption_pr_label",
+                     tip:"2023年10月施行のステマ規制により、PR投稿には「#PR」「広告」等の明示が必須。最も目立つ位置に記載を。"},
+                ]
+            },
+            thumbnail: {
+                label: "サムネイルに関して",
+                items: [
+                    {id:"pr_thumb_01", text:"全てが太文字になっているか", auto:false,
+                     tip:"サムネは小さく表示されるため細い文字は読めません。太めのゴシック体が鉄板。"},
+                    {id:"pr_thumb_02", text:"サイズは正方形の中に文字が全て収まるようになっているか", auto:false,
+                     tip:"フィード表示は正方形クロップされるため、正方形内に収まらない文字は見切れます。"},
+                    {id:"pr_thumb_03", text:"メイン被写体が画面中央の正方形に収まったトリミングができているか", auto:false,
+                     tip:"一番見せたい被写体が正方形クロップの中央に来るように調整。端に寄っているとフィードで見切れます。"},
+                    {id:"pr_thumb_04", text:"サムネイル文1行目（上部）は12文字以内で記載できているか", auto:false,
+                     tip:"1行目は最もインパクトのあるフレーズを。「え、知らなかった」「衝撃の〇〇」等の感情トリガーが効果的。"},
+                    {id:"pr_thumb_05", text:"サムネイル文2行目（上部）は9文字以内で記載できているか", auto:false,
+                     tip:"2行目は補足情報。エリアや特徴を簡潔に。"},
+                    {id:"pr_thumb_06", text:"サムネイル文2行目は左右最大までサイズ調整できているか", auto:false,
+                     tip:"文字を端まで広げることで存在感が出ます。余白が多いとインパクトが弱くなります。"},
+                ]
+            },
+            caption: {
+                label: "キャプションに関して",
+                items: [
+                    {id:"pr_cap_01", text:"適正なハッシュタグを使用できているか（最大5個で#PRは一番上に）", auto:"caption_hashtag",
+                     tip:"PR投稿は#PRを1番目に。残り4つはエリア名、ジャンル、具体的な店名系を使いましょう。多すぎるとスパム認定リスク。"},
+                    {id:"pr_cap_02", text:"行動描写が1つ以上含まれているか", auto:"caption_action",
+                     tip:"「〇〇がある」ではなく「〇〇を食べたら」「行ってみたら」等の行動ベースの表現を入れましょう。"},
+                    {id:"pr_cap_03", text:"AIで作成時の「**」などの不要な記号は削除できているか", auto:"caption_ai_marks",
+                     tip:"**太字**、##見出し、箇条書きの-など、AI特有の記号が残っていると不自然。投稿前に全て削除を。"},
+                    {id:"pr_cap_04", text:"誤字脱字はしていないか", auto:"caption_typo",
+                     tip:"特に店名、住所、価格の誤りは致命的。公式情報と照らし合わせて確認。"},
+                    {id:"pr_cap_05", text:"店舗情報に誤りはないか", auto:false,
+                     tip:"営業時間・定休日・価格は変更が多いです。投稿直前に公式サイトやGoogleで最新情報を確認。"},
+                ]
+            },
+        }
+    },
+    normal: {
+        label: "通常投稿",
+        categories: {
+            video: {
+                label: "動画に関して",
+                items: [
+                    {id:"nm_vid_01", text:"冒頭10秒までに伸びる要素が2つ以上入っているか（意外性・話題性・希少性・権威性）", auto:false,
+                     tip:"冒頭で「続きを見たい」と思わせることが最重要。最初の3秒で離脱するユーザーが最も多い。"},
+                    {id:"nm_vid_02", text:"第3者視点の台本になっているか", auto:false,
+                     tip:"「おすすめです！」より「行ってみたら予想外だった」の方が信頼感があります。"},
+                    {id:"nm_vid_03", text:"1カットの秒数0.6秒〜1.2秒になっているか", auto:"cut_duration",
+                     tip:"テンポよく切り替えることで最後まで見てもらえる確率が上がります。"},
+                    {id:"nm_vid_04", text:"情報を羅列しただけではなく個人の感想的な文言が入っているか", auto:false,
+                     tip:"「メニューが3種類」→「迷った末に選んだAが大正解だった」のように主観を入れると親近感UP。"},
+                    {id:"nm_vid_05", text:"誤字脱字はしていないか", auto:false, tip:"テロップの誤字は即スクショされて拡散されるリスクも。"},
+                    {id:"nm_vid_06", text:"同じような素材が続き離脱ポイントが生じていないか", auto:"similar_scenes",
+                     tip:"同じアングルの料理写真が3枚以上続くと離脱率が急上昇。間に人物や空間のカットを挟みましょう。"},
+                    {id:"nm_vid_07", text:"テロップの入れる位置は最適か", auto:false,
+                     tip:"Reelsの安全エリアは上部1/3。下部はキャプション、左下はアカウント名が重なります。"},
+                    {id:"nm_vid_08", text:"テロップのフォントはマニュアル通りか", auto:false, tip:"ブランドの統一感のために指定フォントを使用。"},
+                    {id:"nm_vid_09", text:"景品表示法のガイドラインを違反していないか？", auto:false,
+                     tip:"通常投稿でも「No.1」「最安」などの根拠なき表現はNG。消費者庁の措置命令対象になり得ます。"},
+                    {id:"nm_vid_10", text:"肖像権を侵害していないか？（一般人の顔はモザイク）", auto:"face_detect",
+                     tip:"背景の通行人、隣の席の客にも注意。子供が映っている場合は特に慎重に。"},
+                    {id:"nm_vid_11", text:"彩度/明度を調整できているか", auto:"color_check",
+                     tip:"暗すぎる映像は離脱の原因。料理は少し暖色に、空間は実際の雰囲気を活かした補正を。"},
+                    {id:"nm_vid_12", text:"既存素材の場合店舗は営業していて商品は今も販売されているか", auto:false,
+                     tip:"閉店・メニュー終了の店舗を紹介するとクレームの原因に。投稿前にGoogleで営業状況を確認。"},
+                ]
+            },
+            legal: {
+                label: "法的リスクチェック",
+                items: [
+                    {id:"nm_legal_01", text:"景品表示法に抵触する表現がないか", auto:"caption_legal",
+                     tip:"通常投稿でも法的リスクは同じ。「最高」「一番」等の最上級表現には根拠が必要。"},
+                    {id:"nm_legal_02", text:"肖像権・プライバシーを侵害していないか", auto:"face_detect",
+                     tip:"一般人の顔、車のナンバー、住所が読める表札はすべてモザイク対象。"},
+                    {id:"nm_legal_03", text:"著作権を侵害していないか（音源・フォント・画像）", auto:false,
+                     tip:"BGM、フォント、素材画像すべてに商用ライセンスが必要。"},
+                ]
+            },
+            thumbnail: {
+                label: "サムネイルに関して",
+                items: [
+                    {id:"nm_thumb_01", text:"全てが太文字になっているか", auto:false, tip:"小さい画面でも読めるように太字必須。"},
+                    {id:"nm_thumb_02", text:"サイズは正方形の中に文字が全て収まるようになっているか", auto:false, tip:"フィードの正方形クロップで見切れないように。"},
+                    {id:"nm_thumb_03", text:"見せたいものが全て写った写真のトリミングができているか", auto:false, tip:"メイン被写体を中央に配置。"},
+                    {id:"nm_thumb_04", text:"エリアは一般ユーザーが見てわかりやすい場所になっているか", auto:false,
+                     tip:"「〇〇区△△」より「渋谷駅徒歩3分」の方がわかりやすい。ユーザー目線で地名を選択。"},
+                ]
+            },
+            caption: {
+                label: "キャプションに関して",
+                items: [
+                    {id:"nm_cap_01", text:"適正なハッシュタグを使用できているか（最大5個）", auto:"caption_hashtag_normal",
+                     tip:"エリア名+ジャンル+具体的キーワードの組み合わせ。5個以内に絞ることでスパム判定を回避。"},
+                    {id:"nm_cap_02", text:"AIで作った文章丸出しではないか", auto:"caption_ai_marks",
+                     tip:"「〜について紹介します」「いかがでしたでしょうか」等のAI定型文は削除。口語体で自然に。"},
+                    {id:"nm_cap_03", text:"誤字脱字はしていないか", auto:"caption_typo", tip:"店名と住所は特に注意。"},
+                    {id:"nm_cap_04", text:"店舗情報に誤りはないか", auto:false, tip:"営業時間・定休日は変更が多いので最新情報を確認。"},
+                ]
+            },
         }
     }
+};
 
-    function showResults(data) {
-        document.getElementById('step-loading').classList.add('hidden');
-        document.getElementById('step-result').classList.remove('hidden');
+// ──────────────────────────────────────────────
+// State
+// ──────────────────────────────────────────────
+let selectedType = null, selectedFile = null, checkStates = {}, autoResults = {}, metadata = {}, previewDataURLs = [], captionResults = {};
 
-        const { metadata, auto_results, preview_frames, checklist } = data;
-        checkStates = {};
+// ──────────────────────────────────────────────
+// UI
+// ──────────────────────────────────────────────
+function selectType(t) {
+    selectedType = t;
+    document.querySelectorAll('.type-btn').forEach(b => { b.classList.remove('border-jp-500','bg-red-50'); b.classList.add('border-gray-200'); });
+    document.getElementById(`btn-${t}`).classList.remove('border-gray-200');
+    document.getElementById(`btn-${t}`).classList.add('border-jp-500','bg-red-50');
+    updateBtn();
+}
+function handleFile(f) {
+    if (!f||!f.type.startsWith('video/')) { alert('動画ファイルを選択してください'); return; }
+    selectedFile = f;
+    document.getElementById('file-name').textContent = f.name;
+    document.getElementById('file-size').textContent = (f.size/(1024*1024)).toFixed(1)+' MB';
+    document.getElementById('file-info').classList.remove('hidden');
+    document.getElementById('drop-zone').classList.add('hidden');
+    updateBtn();
+}
+function clearFile() {
+    selectedFile = null; document.getElementById('file-input').value='';
+    document.getElementById('file-info').classList.add('hidden');
+    document.getElementById('drop-zone').classList.remove('hidden');
+    updateBtn();
+}
+function updateBtn() { document.getElementById('btn-analyze').disabled = !(selectedType && selectedFile); }
 
-        // メタデータ
-        const isVertical = metadata.height > metadata.width;
-        const orientLabel = isVertical ? '縦型' : '横型';
-        document.getElementById('metadata-display').innerHTML = `
-            <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">解像度</div><div class="font-semibold">${metadata.width}x${metadata.height}</div></div>
-            <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">尺</div><div class="font-semibold">${metadata.duration}秒</div></div>
-            <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">FPS</div><div class="font-semibold">${metadata.fps}</div></div>
-            <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">向き</div><div class="font-semibold">${orientLabel}</div></div>
-            <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">フレーム数</div><div class="font-semibold">${metadata.total_frames}</div></div>
-        `;
+const dz = document.getElementById('drop-zone');
+['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('dragover'); }));
+['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('dragover'); }));
+dz.addEventListener('drop', e => { if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
 
-        // プレビュー
-        const pfEl = document.getElementById('preview-frames');
-        pfEl.innerHTML = preview_frames.map(f =>
-            `<img src="data:image/jpeg;base64,${f.base64}" class="preview-thumb h-24 rounded-lg border border-gray-200 flex-shrink-0 cursor-pointer" title="${f.timestamp}秒">`
-        ).join('');
+// ──────────────────────────────────────────────
+// キャプション自動チェック
+// ──────────────────────────────────────────────
+function checkCaption(text, postType) {
+    const results = {};
+    if (!text.trim()) return results;
 
-        // チェックリスト描画
-        const container = document.getElementById('checklist-results');
-        container.innerHTML = '';
-
-        let totalItems = 0;
-        for (const [catKey, cat] of Object.entries(checklist.categories)) {
-            const div = document.createElement('div');
-            div.className = 'bg-white rounded-2xl shadow-sm border border-gray-200 p-6 fade-in';
-
-            let html = `<h3 class="font-semibold text-gray-900 mb-4">${cat.label}</h3><div class="space-y-2">`;
-
-            for (const item of cat.items) {
-                totalItems++;
-                const ar = auto_results[item.id];
-                const isAuto = !!item.auto;
-
-                // 自動チェック結果がある場合はそれを初期状態に
-                if (ar) {
-                    checkStates[item.id] = ar.status;
-                }
-
-                const statusBadge = ar ? renderBadge(ar.status) : '';
-                const comment = ar?.comment || '';
-                const autoTag = isAuto ? '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">自動</span>' : '';
-
-                html += `
-                <div class="check-item flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 transition-all" data-id="${item.id}">
-                    <div class="flex gap-1 flex-shrink-0 mt-0.5">
-                        <button onclick="toggleCheck('${item.id}','pass',this)" title="OK"
-                            class="check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${checkStates[item.id]==='pass' ? 'bg-green-100 text-green-600 ring-2 ring-green-400' : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500'}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        </button>
-                        <button onclick="toggleCheck('${item.id}','fail',this)" title="NG"
-                            class="check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${checkStates[item.id]==='fail' ? 'bg-red-100 text-red-600 ring-2 ring-red-400' : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <p class="text-sm text-gray-900">${item.text}</p>
-                            ${autoTag}
-                            ${statusBadge}
-                        </div>
-                        ${comment ? `<p class="text-xs text-gray-500 mt-1.5 bg-gray-50 p-2 rounded-lg">${comment}</p>` : ''}
-                    </div>
-                </div>`;
-            }
-
-            html += '</div>';
-            div.innerHTML = html;
-            container.appendChild(div);
-        }
-
-        updateProgress();
-    }
-
-    function renderBadge(status) {
-        const map = {
-            pass: ['OK', 'status-pass'],
-            warn: ['注意', 'status-warn'],
-            fail: ['NG', 'status-fail'],
-            unknown: ['不明', 'status-unknown'],
-        };
-        const [label, cls] = map[status] || ['', 'status-unknown'];
-        return `<span class="${cls} text-xs px-2 py-0.5 rounded-full border font-medium">${label}</span>`;
-    }
-
-    function toggleCheck(itemId, status, btn) {
-        // Toggle: clicking same status again removes it
-        if (checkStates[itemId] === status) {
-            delete checkStates[itemId];
+    // ハッシュタグチェック
+    const hashtags = text.match(/#[^\s#]+/g) || [];
+    if (postType === 'pr') {
+        const hasPR = hashtags.some(h => h.toLowerCase() === '#pr');
+        const prFirst = hashtags.length > 0 && hashtags[0].toLowerCase() === '#pr';
+        if (hashtags.length === 0) {
+            results.caption_hashtag = {status:'fail', comment:'ハッシュタグがありません'};
+        } else if (!hasPR) {
+            results.caption_hashtag = {status:'fail', comment:'#PR が含まれていません（PR投稿では必須）'};
+        } else if (!prFirst) {
+            results.caption_hashtag = {status:'warn', comment:`#PRは一番上に配置してください（現在: ${hashtags.indexOf(hashtags.find(h=>h.toLowerCase()==='#pr'))+1}番目）`};
+        } else if (hashtags.length > 5) {
+            results.caption_hashtag = {status:'warn', comment:`ハッシュタグが${hashtags.length}個あります（推奨: 最大5個）`};
         } else {
-            checkStates[itemId] = status;
+            results.caption_hashtag = {status:'pass', comment:`${hashtags.length}個のハッシュタグ OK（#PRが先頭）`};
         }
-
-        // Update button styles in this row
-        const row = btn.closest('.check-item');
-        const buttons = row.querySelectorAll('.check-btn');
-        // OK button
-        buttons[0].className = `check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-            checkStates[itemId] === 'pass' ? 'bg-green-100 text-green-600 ring-2 ring-green-400' : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500'
-        }`;
-        // NG button
-        buttons[1].className = `check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-            checkStates[itemId] === 'fail' ? 'bg-red-100 text-red-600 ring-2 ring-red-400' : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'
-        }`;
-
-        updateProgress();
+        // PR表記チェック
+        if (hasPR || /広告|PR|タイアップ|提供/.test(text)) {
+            results.caption_pr_label = {status:'pass', comment:'PR表記が確認できました'};
+        } else {
+            results.caption_pr_label = {status:'fail', comment:'PR投稿ですが広告表記がありません（ステマ規制違反の可能性）'};
+        }
+    } else {
+        if (hashtags.length === 0) {
+            results.caption_hashtag_normal = {status:'warn', comment:'ハッシュタグがありません'};
+        } else if (hashtags.length > 5) {
+            results.caption_hashtag_normal = {status:'warn', comment:`ハッシュタグが${hashtags.length}個（推奨: 最大5個）`};
+        } else {
+            results.caption_hashtag_normal = {status:'pass', comment:`${hashtags.length}個のハッシュタグ OK`};
+        }
     }
 
-    function updateProgress() {
-        if (!analysisData) return;
-        const checklist = analysisData.checklist;
-        let total = 0, checked = 0, pass = 0, warn = 0, fail = 0;
+    // AI記号チェック
+    const aiMarks = text.match(/\*\*[^*]+\*\*|##\s|```|---|\n-\s/g) || [];
+    if (aiMarks.length > 0) {
+        results.caption_ai_marks = {status:'fail', comment:`AI特有の記号が${aiMarks.length}箇所: ${aiMarks.slice(0,3).map(m=>'"'+m.trim()+'"').join(', ')}`};
+    } else {
+        results.caption_ai_marks = {status:'pass', comment:'AI特有の記号は見つかりませんでした'};
+    }
 
-        for (const cat of Object.values(checklist.categories)) {
-            for (const item of cat.items) {
-                total++;
-                const st = checkStates[item.id];
-                if (st) {
-                    checked++;
-                    if (st === 'pass') pass++;
-                    else if (st === 'warn') warn++;
-                    else if (st === 'fail') fail++;
-                }
+    // 行動描写チェック
+    const actionWords = text.match(/(行って|食べて|飲んで|頼んで|注文し|試し|体験|訪れ|選んで|買って|使って|歩いて|座って|入って|見て|撮って|感じ|驚い|思わず|つい)/g) || [];
+    if (actionWords.length > 0) {
+        results.caption_action = {status:'pass', comment:`行動描写 ${actionWords.length}箇所: 「${[...new Set(actionWords)].slice(0,3).join('」「')}」`};
+    } else {
+        results.caption_action = {status:'warn', comment:'行動描写が見つかりません。体験ベースの表現を追加しましょう'};
+    }
+
+    // 景品表示法チェック
+    const legalIssues = [];
+    if (/No\.?\s*1|ナンバーワン|ナンバー1/i.test(text)) legalIssues.push('"No.1"表記（根拠の出典が必要）');
+    if (/最大|最安|最高|最強|日本一|世界一|業界初/.test(text)) legalIssues.push('最上級表現（客観的根拠が必要）');
+    if (/みんな知ってる|誰もが知る|有名な/.test(text)) legalIssues.push('"みんな知ってる"系の表現（不当表示の可能性）');
+    if (/絶対|確実に|必ず|間違いなく/.test(text)) legalIssues.push('断定表現（効果を保証する表現はNG）');
+    if (legalIssues.length > 0) {
+        results.caption_legal = {status:'fail', comment:`景表法リスク: ${legalIssues.join('; ')}`};
+    } else {
+        results.caption_legal = {status:'pass', comment:'景品表示法上の問題表現は見つかりませんでした'};
+    }
+
+    // 簡易誤字チェック（よくある間違いパターン）
+    const typoPatterns = [
+        [/ず つ/g, '「ずつ」→スペース不要？'], [/についてて/g, '「についてて」→「について」？'],
+        [/を を/g, '「を」重複？'], [/が が/g, '「が」重複？'], [/は は/g, '「は」重複？'],
+        [/。。/g, '句点重複'], [/、、/g, '読点重複'],
+    ];
+    const typos = [];
+    for (const [pat, msg] of typoPatterns) {
+        if (pat.test(text)) typos.push(msg);
+    }
+    if (typos.length > 0) {
+        results.caption_typo = {status:'warn', comment:`気になる箇所: ${typos.join(', ')}`};
+    } else {
+        results.caption_typo = {status:'pass', comment:'明らかな誤字パターンは見つかりませんでした'};
+    }
+
+    return results;
+}
+
+// ──────────────────────────────────────────────
+// 動画解析（ブラウザ内）
+// ──────────────────────────────────────────────
+function setProgress(p, m) {
+    document.getElementById('progress-bar').style.width = p+'%';
+    if (m) document.getElementById('loading-status').textContent = m;
+}
+
+function extractFrame(video, canvas, ctx, time) {
+    return new Promise(resolve => {
+        video.currentTime = time;
+        video.onseeked = () => {
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const tc = document.createElement('canvas');
+            const s = Math.min(400/video.videoWidth, 400/video.videoHeight, 1);
+            tc.width = video.videoWidth*s; tc.height = video.videoHeight*s;
+            tc.getContext('2d').drawImage(video, 0, 0, tc.width, tc.height);
+            resolve({ imageData, thumbURL: tc.toDataURL('image/jpeg', 0.7), time });
+        };
+    });
+}
+
+function frameDiff(d1, d2) {
+    const a = d1.data, b = d2.data; let sum = 0, n = 0;
+    for (let i = 0; i < a.length; i += 16) {
+        sum += Math.abs((0.299*a[i]+0.587*a[i+1]+0.114*a[i+2]) - (0.299*b[i]+0.587*b[i+1]+0.114*b[i+2]));
+        n++;
+    }
+    return sum / n;
+}
+
+function colorStats(imageData) {
+    const d = imageData.data; let sb=0,ss=0,oe=0,n=0;
+    for (let i=0;i<d.length;i+=16) {
+        const mx=Math.max(d[i],d[i+1],d[i+2]),mn=Math.min(d[i],d[i+1],d[i+2]);
+        sb+=mx; ss+=mx===0?0:((mx-mn)/mx)*255; if(mx>240)oe++; n++;
+    }
+    return {meanBri:sb/n, meanSat:ss/n, overRatio:oe/n};
+}
+
+function hueHist(imageData) {
+    const d=imageData.data,h=new Float32Array(30); let t=0;
+    for(let i=0;i<d.length;i+=16){
+        const r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+        if(mx-mn<0.05)continue; let hue;
+        if(mx===r)hue=((g-b)/(mx-mn))%6; else if(mx===g)hue=(b-r)/(mx-mn)+2; else hue=(r-g)/(mx-mn)+4;
+        hue=Math.round(hue*5)%30; if(hue<0)hue+=30; h[hue]++; t++;
+    }
+    if(t>0)for(let i=0;i<30;i++)h[i]/=t; return h;
+}
+
+function histCorr(a,b) {
+    let m1=0,m2=0; for(let i=0;i<a.length;i++){m1+=a[i];m2+=b[i];} m1/=a.length;m2/=b.length;
+    let n=0,d1=0,d2=0; for(let i=0;i<a.length;i++){const x=a[i]-m1,y=b[i]-m2;n+=x*y;d1+=x*x;d2+=y*y;}
+    return(d1*d2)===0?0:n/Math.sqrt(d1*d2);
+}
+
+async function analyzeVideo() {
+    const video=document.getElementById('analyzer-video'), canvas=document.getElementById('analyzer-canvas');
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    video.src=URL.createObjectURL(selectedFile);
+    await new Promise((r,j)=>{video.onloadedmetadata=r;video.onerror=()=>j(new Error('動画を読み込めませんでした'));});
+
+    const dur=video.duration, w=video.videoWidth, h=video.videoHeight;
+    metadata={width:w,height:h,duration:Math.round(dur*100)/100,aspect:`${w}:${h}`};
+
+    const interval=Math.max(0.1,dur/300), times=[];
+    for(let t=0;t<dur;t+=interval)times.push(t);
+
+    setProgress(10,'フレームを抽出しています...');
+    const frames=[]; previewDataURLs=[];
+    const pInt=Math.max(Math.floor(times.length/8),1);
+    for(let i=0;i<times.length;i++){
+        frames.push(await extractFrame(video,canvas,ctx,times[i]));
+        if(i%pInt===0&&previewDataURLs.length<8) previewDataURLs.push({url:frames[i].thumbURL,time:Math.round(times[i]*10)/10});
+        if(i%20===0){setProgress(10+(i/times.length)*50,`フレーム解析中... ${i}/${times.length}`);await new Promise(r=>setTimeout(r,0));}
+    }
+
+    setProgress(65,'カット検出中...'); await new Promise(r=>setTimeout(r,0));
+    const sceneTimes=[0];
+    for(let i=1;i<frames.length;i++) if(frameDiff(frames[i-1].imageData,frames[i].imageData)>25) sceneTimes.push(frames[i].time);
+    sceneTimes.push(dur);
+
+    // カット秒数
+    setProgress(75,'カット秒数をチェック中...'); await new Promise(r=>setTimeout(r,0));
+    const cuts=[]; for(let i=0;i<sceneTimes.length-1;i++) cuts.push(Math.round((sceneTimes[i+1]-sceneTimes[i])*100)/100);
+    if(cuts.length){
+        const sh=cuts.filter(d=>d<0.6),lg=cuts.filter(d=>d>1.2),ok=cuts.length-sh.length-lg.length,avg=Math.round(cuts.reduce((a,b)=>a+b,0)/cuts.length*100)/100;
+        if(!sh.length&&!lg.length) autoResults.cut_duration={status:'pass',comment:`全${cuts.length}カット OK。平均 ${avg}秒`};
+        else{const iss=[]; if(sh.length)iss.push(`短すぎ ${sh.length}カット`); if(lg.length)iss.push(`長すぎ ${lg.length}カット`);
+            autoResults.cut_duration={status:ok/cuts.length>=0.8?'pass':ok/cuts.length>=0.5?'warn':'fail',comment:`全${cuts.length}カット中 ${ok}カット適正。${iss.join(', ')}。平均 ${avg}秒`};}
+    }
+
+    // 類似シーン
+    setProgress(80,'類似シーンをチェック中...'); await new Promise(r=>setTimeout(r,0));
+    const midHists=[]; for(let i=0;i<sceneTimes.length-1;i++){
+        const mt=(sceneTimes[i]+sceneTimes[i+1])/2; let cl=frames[0],md=Infinity;
+        for(const f of frames){const d=Math.abs(f.time-mt);if(d<md){md=d;cl=f;}} midHists.push(hueHist(cl.imageData));
+    }
+    const cg=[]; let sk=1;
+    for(let i=1;i<midHists.length;i++){if(histCorr(midHists[i-1],midHists[i])>0.85)sk++;else{if(sk>=3)cg.push(`${Math.round(sceneTimes[i-sk]*10)/10}秒付近で${sk}連続`);sk=1;}}
+    if(sk>=3)cg.push(`${Math.round(sceneTimes[midHists.length-sk]*10)/10}秒付近で${sk}連続`);
+    autoResults.similar_scenes=cg.length===0?{status:'pass',comment:'類似カットの3連続以上はありません'}:{status:cg.length<=2?'warn':'fail',comment:`類似シーン連続: ${cg.join(', ')}`};
+
+    // 色チェック
+    setProgress(90,'色彩をチェック中...'); await new Promise(r=>setTimeout(r,0));
+    const cInt=Math.max(Math.floor(frames.length/20),1),cSamp=[];
+    for(let i=0;i<frames.length;i+=cInt){const s=colorStats(frames[i].imageData);s.time=Math.round(frames[i].time*10)/10;cSamp.push(s);}
+    const oeF=cSamp.filter(s=>s.overRatio>0.3),lsF=cSamp.filter(s=>s.meanSat<30);
+    const aB=Math.round(cSamp.reduce((a,s)=>a+s.meanBri,0)/cSamp.length),aS=Math.round(cSamp.reduce((a,s)=>a+s.meanSat,0)/cSamp.length);
+    if(!oeF.length&&!lsF.length) autoResults.color_check={status:'pass',comment:`色調は適正（平均明度: ${aB}/255, 平均彩度: ${aS}/255）`};
+    else{const is=[]; if(oeF.length)is.push(`白飛び: ${oeF.slice(0,5).map(s=>s.time+'秒').join(', ')}付近`);
+        if(lsF.length)is.push(`低彩度: ${lsF.slice(0,5).map(s=>s.time+'秒').join(', ')}付近`);
+        autoResults.color_check={status:oeF.length>cSamp.length*0.3?'fail':'warn',comment:`${is.join('; ')}（平均明度: ${aB}, 平均彩度: ${aS}）`};}
+
+    // 肌色検出
+    setProgress(95,'人物検出中...'); await new Promise(r=>setTimeout(r,0));
+    const skinF=[];
+    for(let i=0;i<frames.length;i+=cInt){
+        const d=frames[i].imageData.data; let sp=0,n=0;
+        for(let j=0;j<d.length;j+=16){const r=d[j],g=d[j+1],b=d[j+2];
+            if(r>95&&g>40&&b>20&&r>g&&r>b&&(r-g)>15&&Math.abs(r-g)<100)sp++;n++;}
+        if(sp/n>0.15)skinF.push(Math.round(frames[i].time*10)/10);
+    }
+    autoResults.face_detect=skinF.length===0?{status:'pass',comment:'人物（肌色領域）は検出されませんでした'}:
+        {status:'warn',comment:`肌色領域が大きいフレーム: ${skinF.slice(0,10).map(t=>t+'秒').join(', ')}（計${skinF.length}箇所）。人物映り込みの確認が必要`};
+
+    setProgress(100,'完了');
+    URL.revokeObjectURL(video.src);
+}
+
+// ──────────────────────────────────────────────
+// メイン
+// ──────────────────────────────────────────────
+async function startAnalysis() {
+    autoResults={}; previewDataURLs=[]; checkStates={}; captionResults={};
+    document.getElementById('step-config').classList.add('hidden');
+    document.getElementById('step-loading').classList.remove('hidden');
+    try {
+        await analyzeVideo();
+        // キャプションチェック
+        const capText = document.getElementById('caption-input').value;
+        if (capText.trim()) captionResults = checkCaption(capText, selectedType);
+        // 自動結果をcheckStatesに反映
+        const cl=CHECKLISTS[selectedType];
+        for(const cat of Object.values(cl.categories)) for(const item of cat.items){
+            if(item.auto && (autoResults[item.auto] || captionResults[item.auto])){
+                const r = autoResults[item.auto] || captionResults[item.auto];
+                checkStates[item.id]=r.status;
             }
         }
-
-        const pct = total > 0 ? Math.round(checked / total * 100) : 0;
-        document.getElementById('check-progress').style.width = pct + '%';
-        document.getElementById('progress-text').textContent = `${checked} / ${total} 完了 (${pct}%)`;
-        document.getElementById('count-pass').textContent = pass;
-        document.getElementById('count-warn').textContent = warn;
-        document.getElementById('count-fail').textContent = fail;
-        document.getElementById('count-unchecked').textContent = total - checked;
-    }
-
-    function exportResults() {
-        if (!analysisData) return;
-        const { metadata, auto_results, checklist } = analysisData;
-
-        let text = `# SNS動画チェック結果\n`;
-        text += `投稿タイプ: ${checklist.label}\n\n`;
-        text += `## 動画情報\n`;
-        text += `- 解像度: ${metadata.width}x${metadata.height}\n`;
-        text += `- 尺: ${metadata.duration}秒 / FPS: ${metadata.fps}\n\n`;
-
-        for (const [catKey, cat] of Object.entries(checklist.categories)) {
-            text += `## ${cat.label}\n`;
-            for (const item of cat.items) {
-                const st = checkStates[item.id];
-                const label = st === 'pass' ? 'OK' : st === 'fail' ? 'NG' : st === 'warn' ? '注意' : '未チェック';
-                const mark = st === 'pass' ? 'x' : ' ';
-                const ar = auto_results[item.id];
-                const comment = ar?.comment ? ` → ${ar.comment}` : '';
-                text += `- [${mark}] [${label}] ${item.text}${comment}\n`;
-            }
-            text += '\n';
-        }
-
-        navigator.clipboard.writeText(text).then(() => {
-            const btn = document.getElementById('btn-export');
-            btn.textContent = 'コピーしました!';
-            btn.classList.add('bg-green-50', 'text-green-700', 'border-green-300');
-            setTimeout(() => {
-                btn.textContent = '結果をクリップボードにコピー';
-                btn.classList.remove('bg-green-50', 'text-green-700', 'border-green-300');
-            }, 2000);
-        });
-    }
-
-    function resetAll() {
-        selectedType = null; selectedFile = null; analysisData = null; checkStates = {};
-        document.getElementById('file-input').value = '';
-        document.getElementById('file-info').classList.add('hidden');
-        document.getElementById('drop-zone').classList.remove('hidden');
-        document.querySelectorAll('.type-btn').forEach(b => { b.classList.remove('border-indigo-600','bg-indigo-50'); b.classList.add('border-gray-200'); });
-        document.getElementById('btn-analyze').disabled = true;
-        document.getElementById('step-result').classList.add('hidden');
+        setTimeout(showResults,300);
+    } catch(e) {
+        alert('エラー: '+e.message);
         document.getElementById('step-loading').classList.add('hidden');
         document.getElementById('step-config').classList.remove('hidden');
     }
-    </script>
+}
+
+function showResults() {
+    document.getElementById('step-loading').classList.add('hidden');
+    document.getElementById('step-result').classList.remove('hidden');
+    const cl=CHECKLISTS[selectedType], isV=metadata.height>metadata.width;
+
+    document.getElementById('metadata-display').innerHTML=`
+        <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">解像度</div><div class="font-semibold">${metadata.width}x${metadata.height}</div></div>
+        <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">尺</div><div class="font-semibold">${metadata.duration}秒</div></div>
+        <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">向き</div><div class="font-semibold">${isV?'縦型':'横型'}</div></div>
+        <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">アスペクト比</div><div class="font-semibold">${metadata.aspect}</div></div>
+        <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">ファイル</div><div class="font-semibold text-xs truncate">${selectedFile.name}</div></div>`;
+
+    document.getElementById('preview-frames').innerHTML=previewDataURLs.map(f=>`<img src="${f.url}" class="preview-thumb h-24 rounded-lg border border-gray-200 flex-shrink-0" title="${f.time}秒">`).join('');
+
+    // 自動チェック結果
+    const ak=Object.keys(autoResults);
+    if(ak.length){
+        document.getElementById('auto-check-summary').classList.remove('hidden');
+        const lb={cut_duration:'カット秒数',similar_scenes:'類似シーン連続',color_check:'色彩・明度',face_detect:'人物検出'};
+        document.getElementById('auto-results-list').innerHTML=ak.map(k=>{const r=autoResults[k];
+            return`<div class="flex items-start gap-3 p-3 rounded-xl border border-gray-100">
+                <span class="status-${r.status} text-xs px-2 py-1 rounded-lg border font-medium flex-shrink-0">${{pass:'OK',warn:'注意',fail:'NG',unknown:'不明'}[r.status]}</span>
+                <div><div class="text-sm font-medium text-gray-900">${lb[k]||k}</div><div class="text-xs text-gray-500 mt-0.5">${r.comment}</div></div></div>`;}).join('');
+    }
+
+    // キャプション結果
+    const ck=Object.keys(captionResults);
+    if(ck.length){
+        document.getElementById('caption-result').classList.remove('hidden');
+        const clb={caption_hashtag:'ハッシュタグ',caption_hashtag_normal:'ハッシュタグ',caption_ai_marks:'AI記号',caption_action:'行動描写',caption_legal:'景表法',caption_typo:'誤字',caption_pr_label:'PR表記'};
+        document.getElementById('caption-results-list').innerHTML=ck.map(k=>{const r=captionResults[k];
+            return`<div class="flex items-start gap-3 p-3 rounded-xl border border-gray-100">
+                <span class="status-${r.status} text-xs px-2 py-1 rounded-lg border font-medium flex-shrink-0">${{pass:'OK',warn:'注意',fail:'NG'}[r.status]}</span>
+                <div><div class="text-sm font-medium text-gray-900">${clb[k]||k}</div><div class="text-xs text-gray-500 mt-0.5">${r.comment}</div></div></div>`;}).join('');
+    }
+
+    // 改善ヒント（fail/warnの項目のtipを表示）
+    const tips=[];
+    for(const cat of Object.values(cl.categories)) for(const item of cat.items){
+        const st=checkStates[item.id];
+        if((st==='fail'||st==='warn')&&item.tip) tips.push({text:item.text,tip:item.tip,status:st});
+    }
+    const tipsEl=document.getElementById('tips-list');
+    if(tips.length){
+        document.getElementById('tips-section').classList.remove('hidden');
+        tipsEl.innerHTML=tips.map(t=>`<div class="tip-box bg-red-50 p-4 rounded-r-xl">
+            <div class="flex items-center gap-2 mb-1"><span class="status-${t.status} text-xs px-2 py-0.5 rounded-full border font-medium">${t.status==='fail'?'NG':'注意'}</span>
+            <span class="text-sm font-medium text-gray-900">${t.text}</span></div>
+            <p class="text-sm text-gray-700">${t.tip}</p></div>`).join('');
+    } else {
+        document.getElementById('tips-section').classList.add('hidden');
+    }
+
+    // チェックリスト
+    const container=document.getElementById('checklist-results'); container.innerHTML='';
+    for(const[,cat]of Object.entries(cl.categories)){
+        const div=document.createElement('div'); div.className='bg-white rounded-2xl shadow-sm border border-gray-200 p-6 fade-in';
+        let html=`<h3 class="font-semibold text-gray-900 mb-4">${cat.label}</h3><div class="space-y-2">`;
+        for(const item of cat.items){
+            const ar=item.auto?(autoResults[item.auto]||captionResults[item.auto]):null;
+            const autoTag=item.auto?'<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">自動</span>':'';
+            const badge=ar?`<span class="status-${ar.status} text-xs px-2 py-0.5 rounded-full border font-medium">${{pass:'OK',warn:'注意',fail:'NG',unknown:'不明'}[ar.status]}</span>`:'';
+            const cmt=ar?.comment||'';
+            html+=`<div class="check-item flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 transition-all" data-id="${item.id}">
+                <div class="flex gap-1 flex-shrink-0 mt-0.5">
+                    <button onclick="toggle('${item.id}','pass',this)" title="OK" class="check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${checkStates[item.id]==='pass'?'bg-green-100 text-green-600 ring-2 ring-green-400':'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500'}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></button>
+                    <button onclick="toggle('${item.id}','fail',this)" title="NG" class="check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${checkStates[item.id]==='fail'?'bg-red-100 text-red-600 ring-2 ring-red-400':'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap"><p class="text-sm text-gray-900">${item.text}</p>${autoTag}${badge}</div>
+                    ${cmt?`<p class="text-xs text-gray-500 mt-1.5 bg-gray-50 p-2 rounded-lg">${cmt}</p>`:''}
+                    ${item.tip?`<details class="mt-1"><summary class="text-xs text-jp-500 cursor-pointer hover:text-jp-700">改善ヒント</summary><p class="text-xs text-gray-600 mt-1 pl-2 border-l-2 border-jp-300">${item.tip}</p></details>`:''}
+                </div></div>`;
+        }
+        html+='</div>'; div.innerHTML=html; container.appendChild(div);
+    }
+    updateProgress();
+}
+
+function toggle(id,st,btn){
+    checkStates[id]=checkStates[id]===st?undefined:st;
+    const row=btn.closest('.check-item'),bs=row.querySelectorAll('.check-btn');
+    bs[0].className=`check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${checkStates[id]==='pass'?'bg-green-100 text-green-600 ring-2 ring-green-400':'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500'}`;
+    bs[1].className=`check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${checkStates[id]==='fail'?'bg-red-100 text-red-600 ring-2 ring-red-400':'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'}`;
+    updateProgress(); updateTips();
+}
+
+function updateProgress(){
+    const cl=CHECKLISTS[selectedType]; let t=0,c=0,p=0,w=0,f=0;
+    for(const cat of Object.values(cl.categories))for(const i of cat.items){t++;const s=checkStates[i.id];if(s){c++;if(s==='pass')p++;else if(s==='warn')w++;else if(s==='fail')f++;}}
+    const pct=t>0?Math.round(c/t*100):0;
+    document.getElementById('check-progress').style.width=pct+'%';
+    document.getElementById('progress-text').textContent=`${c} / ${t} 完了 (${pct}%)`;
+    document.getElementById('count-pass').textContent=p;document.getElementById('count-warn').textContent=w;
+    document.getElementById('count-fail').textContent=f;document.getElementById('count-unchecked').textContent=t-c;
+}
+
+function updateTips(){
+    const cl=CHECKLISTS[selectedType],tips=[];
+    for(const cat of Object.values(cl.categories))for(const item of cat.items){
+        const st=checkStates[item.id]; if((st==='fail'||st==='warn')&&item.tip)tips.push({text:item.text,tip:item.tip,status:st});}
+    const el=document.getElementById('tips-list');
+    if(tips.length){document.getElementById('tips-section').classList.remove('hidden');
+        el.innerHTML=tips.map(t=>`<div class="tip-box bg-red-50 p-4 rounded-r-xl"><div class="flex items-center gap-2 mb-1">
+            <span class="status-${t.status} text-xs px-2 py-0.5 rounded-full border font-medium">${t.status==='fail'?'NG':'注意'}</span>
+            <span class="text-sm font-medium text-gray-900">${t.text}</span></div><p class="text-sm text-gray-700">${t.tip}</p></div>`).join('');
+    } else document.getElementById('tips-section').classList.add('hidden');
+}
+
+function exportResults(){
+    const cl=CHECKLISTS[selectedType];
+    let t=`# JAPAN SELECT クリエイティブチェック結果\n投稿タイプ: ${cl.label}\n\n## 動画情報\n- 解像度: ${metadata.width}x${metadata.height}\n- 尺: ${metadata.duration}秒\n\n`;
+    for(const[,cat]of Object.entries(cl.categories)){t+=`## ${cat.label}\n`;
+        for(const i of cat.items){const s=checkStates[i.id],l=s==='pass'?'OK':s==='fail'?'NG':s==='warn'?'注意':'未チェック',m=s==='pass'?'x':' ';
+            const ar=i.auto?(autoResults[i.auto]||captionResults[i.auto]):null;t+=`- [${m}] [${l}] ${i.text}${ar?.comment?' → '+ar.comment:''}\n`;}t+='\n';}
+    navigator.clipboard.writeText(t).then(()=>{const b=document.getElementById('btn-export');b.textContent='コピーしました!';b.classList.add('bg-green-50','text-green-700','border-green-300');
+        setTimeout(()=>{b.textContent='結果をクリップボードにコピー';b.classList.remove('bg-green-50','text-green-700','border-green-300');},2000);});
+}
+
+function resetAll(){
+    selectedType=null;selectedFile=null;checkStates={};autoResults={};metadata={};previewDataURLs=[];captionResults={};
+    document.getElementById('file-input').value='';document.getElementById('file-info').classList.add('hidden');
+    document.getElementById('drop-zone').classList.remove('hidden');document.getElementById('caption-input').value='';
+    document.querySelectorAll('.type-btn').forEach(b=>{b.classList.remove('border-jp-500','bg-red-50');b.classList.add('border-gray-200');});
+    document.getElementById('btn-analyze').disabled=true;
+    document.getElementById('step-result').classList.add('hidden');document.getElementById('step-loading').classList.add('hidden');
+    document.getElementById('step-config').classList.remove('hidden');document.getElementById('progress-bar').style.width='0%';
+    document.getElementById('auto-check-summary').classList.add('hidden');document.getElementById('caption-result').classList.add('hidden');
+    document.getElementById('tips-section').classList.add('hidden');
+}
+</script>
 </body>
 </html>
