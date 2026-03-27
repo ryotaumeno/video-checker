@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNS動画チェッカー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+        body { font-family: 'Noto Sans JP', sans-serif; }
+        .status-pass { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+        .status-warn { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+        .status-fail { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+        .status-unknown { background: #f3f4f6; color: #4b5563; border-color: #d1d5db; }
+        .status-unchecked { background: #fff; color: #9ca3af; border-color: #e5e7eb; }
+        .check-pass { background: #d1fae5; border-color: #6ee7b7; }
+        .check-fail { background: #fee2e2; border-color: #fca5a5; }
+        .drop-zone.dragover { border-color: #6366f1; background: #eef2ff; }
+        @keyframes pulse-dot { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+        .loading-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+        .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .preview-thumb { transition: transform 0.2s; }
+        .preview-thumb:hover { transform: scale(1.5); z-index: 10; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">SNS動画チェッカー</h1>
+                <p class="text-xs text-gray-500">動画品質を自動チェック + 手動チェックリスト</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+        <!-- Step 1: 設定 -->
+        <div id="step-config" class="space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">1. 投稿タイプを選択</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="selectType('pr')" id="btn-pr"
+                        class="type-btn p-4 rounded-xl border-2 border-gray-200 hover:border-indigo-400 transition-all text-left">
+                        <div class="font-semibold text-gray-900">PR投稿</div>
+                        <div class="text-sm text-gray-500 mt-1">タイアップ・PR案件の動画</div>
+                    </button>
+                    <button onclick="selectType('normal')" id="btn-normal"
+                        class="type-btn p-4 rounded-xl border-2 border-gray-200 hover:border-indigo-400 transition-all text-left">
+                        <div class="font-semibold text-gray-900">通常投稿</div>
+                        <div class="text-sm text-gray-500 mt-1">通常のオーガニック投稿</div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">2. 動画をアップロード</h2>
+                <div id="drop-zone" class="drop-zone border-2 border-dashed border-gray-300 rounded-xl p-12 text-center cursor-pointer hover:border-indigo-400 transition-all"
+                    onclick="document.getElementById('file-input').click()">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-gray-600 font-medium">ここにドラッグ&ドロップ</p>
+                    <p class="text-sm text-gray-400 mt-1">またはクリックしてファイルを選択</p>
+                    <p class="text-xs text-gray-400 mt-2">MP4, MOV, AVI (最大500MB)</p>
+                </div>
+                <input type="file" id="file-input" accept="video/*" class="hidden" onchange="handleFile(this.files[0])">
+                <div id="file-info" class="hidden mt-4 p-4 bg-indigo-50 rounded-xl flex items-center gap-3">
+                    <svg class="w-8 h-8 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                        <p id="file-name" class="font-medium text-gray-900 truncate"></p>
+                        <p id="file-size" class="text-sm text-gray-500"></p>
+                    </div>
+                    <button onclick="clearFile()" class="text-gray-400 hover:text-red-500 p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="startAnalysis()" id="btn-analyze"
+                class="w-full py-4 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200"
+                disabled>
+                チェック開始
+            </button>
+        </div>
+
+        <!-- Step 2: 分析中 -->
+        <div id="step-loading" class="hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
+                <div class="flex justify-center gap-2 mb-6">
+                    <div class="loading-dot w-3 h-3 bg-indigo-600 rounded-full"></div>
+                    <div class="loading-dot w-3 h-3 bg-indigo-600 rounded-full"></div>
+                    <div class="loading-dot w-3 h-3 bg-indigo-600 rounded-full"></div>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-2">動画を分析中...</h2>
+                <p class="text-gray-500" id="loading-status">フレームを抽出しています</p>
+            </div>
+        </div>
+
+        <!-- Step 3: 結果 -->
+        <div id="step-result" class="hidden space-y-6 fade-in">
+            <!-- ヘッダー -->
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-gray-900">チェック結果</h2>
+                <button onclick="resetAll()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium px-4 py-2 bg-indigo-50 rounded-lg">
+                    新しい動画をチェック
+                </button>
+            </div>
+
+            <!-- 進捗バー -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="font-semibold text-gray-900">チェック進捗</span>
+                    <span id="progress-text" class="text-sm font-medium text-gray-600">0 / 0 完了</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div id="check-progress" class="bg-indigo-600 h-3 rounded-full transition-all duration-300" style="width:0%"></div>
+                </div>
+                <div class="flex gap-4 mt-3 text-sm">
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-400 inline-block"></span> <span id="count-pass">0</span> OK</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> <span id="count-warn">0</span> 注意</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span> <span id="count-fail">0</span> NG</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300 inline-block"></span> <span id="count-unchecked">0</span> 未チェック</span>
+                </div>
+            </div>
+
+            <!-- メタデータ + プレビュー -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h3 class="font-semibold text-gray-900 mb-3">動画情報</h3>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4" id="metadata-display"></div>
+                <div id="preview-frames" class="flex gap-2 overflow-x-auto pb-2"></div>
+            </div>
+
+            <!-- チェックリスト -->
+            <div id="checklist-results" class="space-y-4"></div>
+
+            <!-- エクスポート -->
+            <button onclick="exportResults()" id="btn-export"
+                class="w-full py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all">
+                結果をクリップボードにコピー
+            </button>
+        </div>
+    </main>
+
+    <script>
+    let selectedType = null;
+    let selectedFile = null;
+    let analysisData = null;
+    let checkStates = {};  // {itemId: "pass"|"fail"|null}
+
+    function selectType(type) {
+        selectedType = type;
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.classList.remove('border-indigo-600', 'bg-indigo-50');
+            btn.classList.add('border-gray-200');
+        });
+        document.getElementById(`btn-${type}`).classList.remove('border-gray-200');
+        document.getElementById(`btn-${type}`).classList.add('border-indigo-600', 'bg-indigo-50');
+        updateAnalyzeButton();
+    }
+
+    function handleFile(file) {
+        if (!file || !file.type.startsWith('video/')) { alert('動画ファイルを選択してください'); return; }
+        selectedFile = file;
+        document.getElementById('file-name').textContent = file.name;
+        document.getElementById('file-size').textContent = (file.size / (1024*1024)).toFixed(1) + ' MB';
+        document.getElementById('file-info').classList.remove('hidden');
+        document.getElementById('drop-zone').classList.add('hidden');
+        updateAnalyzeButton();
+    }
+
+    function clearFile() {
+        selectedFile = null;
+        document.getElementById('file-input').value = '';
+        document.getElementById('file-info').classList.add('hidden');
+        document.getElementById('drop-zone').classList.remove('hidden');
+        updateAnalyzeButton();
+    }
+
+    function updateAnalyzeButton() {
+        document.getElementById('btn-analyze').disabled = !(selectedType && selectedFile);
+    }
+
+    // D&D
+    const dz = document.getElementById('drop-zone');
+    ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('dragover'); }));
+    dz.addEventListener('drop', e => { if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+    async function startAnalysis() {
+        const formData = new FormData();
+        formData.append('video', selectedFile);
+        formData.append('post_type', selectedType);
+
+        document.getElementById('step-config').classList.add('hidden');
+        document.getElementById('step-loading').classList.remove('hidden');
+
+        const msgs = ['フレームを抽出しています...', 'シーン変化を検出中...', '顔検出を実行中...', '色分析を実行中...'];
+        let mi = 0;
+        const msgInterval = setInterval(() => {
+            mi = (mi + 1) % msgs.length;
+            document.getElementById('loading-status').textContent = msgs[mi];
+        }, 2000);
+
+        try {
+            const res = await fetch('/api/analyze', { method: 'POST', body: formData });
+            const data = await res.json();
+            clearInterval(msgInterval);
+            if (!res.ok) throw new Error(data.error || 'エラー');
+            analysisData = data;
+            showResults(data);
+        } catch (err) {
+            clearInterval(msgInterval);
+            alert('エラー: ' + err.message);
+            document.getElementById('step-loading').classList.add('hidden');
+            document.getElementById('step-config').classList.remove('hidden');
+        }
+    }
+
+    function showResults(data) {
+        document.getElementById('step-loading').classList.add('hidden');
+        document.getElementById('step-result').classList.remove('hidden');
+
+        const { metadata, auto_results, preview_frames, checklist } = data;
+        checkStates = {};
+
+        // メタデータ
+        const isVertical = metadata.height > metadata.width;
+        const orientLabel = isVertical ? '縦型' : '横型';
+        document.getElementById('metadata-display').innerHTML = `
+            <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">解像度</div><div class="font-semibold">${metadata.width}x${metadata.height}</div></div>
+            <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">尺</div><div class="font-semibold">${metadata.duration}秒</div></div>
+            <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">FPS</div><div class="font-semibold">${metadata.fps}</div></div>
+            <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">向き</div><div class="font-semibold">${orientLabel}</div></div>
+            <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-500">フレーム数</div><div class="font-semibold">${metadata.total_frames}</div></div>
+        `;
+
+        // プレビュー
+        const pfEl = document.getElementById('preview-frames');
+        pfEl.innerHTML = preview_frames.map(f =>
+            `<img src="data:image/jpeg;base64,${f.base64}" class="preview-thumb h-24 rounded-lg border border-gray-200 flex-shrink-0 cursor-pointer" title="${f.timestamp}秒">`
+        ).join('');
+
+        // チェックリスト描画
+        const container = document.getElementById('checklist-results');
+        container.innerHTML = '';
+
+        let totalItems = 0;
+        for (const [catKey, cat] of Object.entries(checklist.categories)) {
+            const div = document.createElement('div');
+            div.className = 'bg-white rounded-2xl shadow-sm border border-gray-200 p-6 fade-in';
+
+            let html = `<h3 class="font-semibold text-gray-900 mb-4">${cat.label}</h3><div class="space-y-2">`;
+
+            for (const item of cat.items) {
+                totalItems++;
+                const ar = auto_results[item.id];
+                const isAuto = !!item.auto;
+
+                // 自動チェック結果がある場合はそれを初期状態に
+                if (ar) {
+                    checkStates[item.id] = ar.status;
+                }
+
+                const statusBadge = ar ? renderBadge(ar.status) : '';
+                const comment = ar?.comment || '';
+                const autoTag = isAuto ? '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">自動</span>' : '';
+
+                html += `
+                <div class="check-item flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 transition-all" data-id="${item.id}">
+                    <div class="flex gap-1 flex-shrink-0 mt-0.5">
+                        <button onclick="toggleCheck('${item.id}','pass',this)" title="OK"
+                            class="check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${checkStates[item.id]==='pass' ? 'bg-green-100 text-green-600 ring-2 ring-green-400' : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500'}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </button>
+                        <button onclick="toggleCheck('${item.id}','fail',this)" title="NG"
+                            class="check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${checkStates[item.id]==='fail' ? 'bg-red-100 text-red-600 ring-2 ring-red-400' : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <p class="text-sm text-gray-900">${item.text}</p>
+                            ${autoTag}
+                            ${statusBadge}
+                        </div>
+                        ${comment ? `<p class="text-xs text-gray-500 mt-1.5 bg-gray-50 p-2 rounded-lg">${comment}</p>` : ''}
+                    </div>
+                </div>`;
+            }
+
+            html += '</div>';
+            div.innerHTML = html;
+            container.appendChild(div);
+        }
+
+        updateProgress();
+    }
+
+    function renderBadge(status) {
+        const map = {
+            pass: ['OK', 'status-pass'],
+            warn: ['注意', 'status-warn'],
+            fail: ['NG', 'status-fail'],
+            unknown: ['不明', 'status-unknown'],
+        };
+        const [label, cls] = map[status] || ['', 'status-unknown'];
+        return `<span class="${cls} text-xs px-2 py-0.5 rounded-full border font-medium">${label}</span>`;
+    }
+
+    function toggleCheck(itemId, status, btn) {
+        // Toggle: clicking same status again removes it
+        if (checkStates[itemId] === status) {
+            delete checkStates[itemId];
+        } else {
+            checkStates[itemId] = status;
+        }
+
+        // Update button styles in this row
+        const row = btn.closest('.check-item');
+        const buttons = row.querySelectorAll('.check-btn');
+        // OK button
+        buttons[0].className = `check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+            checkStates[itemId] === 'pass' ? 'bg-green-100 text-green-600 ring-2 ring-green-400' : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500'
+        }`;
+        // NG button
+        buttons[1].className = `check-btn w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+            checkStates[itemId] === 'fail' ? 'bg-red-100 text-red-600 ring-2 ring-red-400' : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'
+        }`;
+
+        updateProgress();
+    }
+
+    function updateProgress() {
+        if (!analysisData) return;
+        const checklist = analysisData.checklist;
+        let total = 0, checked = 0, pass = 0, warn = 0, fail = 0;
+
+        for (const cat of Object.values(checklist.categories)) {
+            for (const item of cat.items) {
+                total++;
+                const st = checkStates[item.id];
+                if (st) {
+                    checked++;
+                    if (st === 'pass') pass++;
+                    else if (st === 'warn') warn++;
+                    else if (st === 'fail') fail++;
+                }
+            }
+        }
+
+        const pct = total > 0 ? Math.round(checked / total * 100) : 0;
+        document.getElementById('check-progress').style.width = pct + '%';
+        document.getElementById('progress-text').textContent = `${checked} / ${total} 完了 (${pct}%)`;
+        document.getElementById('count-pass').textContent = pass;
+        document.getElementById('count-warn').textContent = warn;
+        document.getElementById('count-fail').textContent = fail;
+        document.getElementById('count-unchecked').textContent = total - checked;
+    }
+
+    function exportResults() {
+        if (!analysisData) return;
+        const { metadata, auto_results, checklist } = analysisData;
+
+        let text = `# SNS動画チェック結果\n`;
+        text += `投稿タイプ: ${checklist.label}\n\n`;
+        text += `## 動画情報\n`;
+        text += `- 解像度: ${metadata.width}x${metadata.height}\n`;
+        text += `- 尺: ${metadata.duration}秒 / FPS: ${metadata.fps}\n\n`;
+
+        for (const [catKey, cat] of Object.entries(checklist.categories)) {
+            text += `## ${cat.label}\n`;
+            for (const item of cat.items) {
+                const st = checkStates[item.id];
+                const label = st === 'pass' ? 'OK' : st === 'fail' ? 'NG' : st === 'warn' ? '注意' : '未チェック';
+                const mark = st === 'pass' ? 'x' : ' ';
+                const ar = auto_results[item.id];
+                const comment = ar?.comment ? ` → ${ar.comment}` : '';
+                text += `- [${mark}] [${label}] ${item.text}${comment}\n`;
+            }
+            text += '\n';
+        }
+
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById('btn-export');
+            btn.textContent = 'コピーしました!';
+            btn.classList.add('bg-green-50', 'text-green-700', 'border-green-300');
+            setTimeout(() => {
+                btn.textContent = '結果をクリップボードにコピー';
+                btn.classList.remove('bg-green-50', 'text-green-700', 'border-green-300');
+            }, 2000);
+        });
+    }
+
+    function resetAll() {
+        selectedType = null; selectedFile = null; analysisData = null; checkStates = {};
+        document.getElementById('file-input').value = '';
+        document.getElementById('file-info').classList.add('hidden');
+        document.getElementById('drop-zone').classList.remove('hidden');
+        document.querySelectorAll('.type-btn').forEach(b => { b.classList.remove('border-indigo-600','bg-indigo-50'); b.classList.add('border-gray-200'); });
+        document.getElementById('btn-analyze').disabled = true;
+        document.getElementById('step-result').classList.add('hidden');
+        document.getElementById('step-loading').classList.add('hidden');
+        document.getElementById('step-config').classList.remove('hidden');
+    }
+    </script>
+</body>
+</html>
